@@ -29,6 +29,7 @@ export function SoundscapePanel() {
   return (
     <section className="panel sound-panel">
       <header className="panel-head">
+        <span className="sec-no">02</span>
         <h2 className="panel-title">声景</h2>
         <button
           className={`btn ${state.playing ? '' : 'primary'}`}

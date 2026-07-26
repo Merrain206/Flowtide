@@ -4,6 +4,7 @@
 
 import { TimerPanel } from './components/TimerPanel'
 import { SoundscapePanel } from './components/SoundscapePanel'
+import { MusicPanel } from './components/MusicPanel'
 import { useFocus, useFocusEffects } from './hooks/useEngines'
 
 function App() {
@@ -17,13 +18,19 @@ function App() {
           Flowtide <span className="logo-cn">心流潮汐</span>
         </h1>
         <p className="tagline">让专注与休息像潮汐一样自然涨落</p>
+        <svg className="wave-deco" viewBox="0 0 72 12" fill="none" aria-hidden="true">
+          <path d="M2 8c5-6 9-6 14 0s9 6 14 0 9-6 14 0 9 6 14 0 9-6 12-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
       </header>
       <main className="app-main">
         <TimerPanel />
-        <SoundscapePanel />
+        <div className="side-col">
+          <SoundscapePanel />
+          <MusicPanel />
+        </div>
       </main>
       <footer className="app-footer">
-        v0.1 · 数据仅存于本地 (local-first)
+        v0.2-dev · 数据仅存于本地 (local-first)
       </footer>
     </div>
   )

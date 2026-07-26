@@ -44,6 +44,7 @@ export function TimerPanel() {
   return (
     <section className="panel timer-panel">
       <header className="panel-head">
+        <span className="sec-no">01</span>
         <span className="phase-badge" style={{ background: meta.color }}>{meta.label}</span>
         <span className="phase-hint">{meta.hint}</span>
       </header>

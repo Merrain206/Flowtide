@@ -9,9 +9,12 @@ import { FocusEngine } from '../core/focus/FocusEngine'
 import type { FocusEvent, FocusSnapshot } from '../core/focus/types'
 import { SoundscapeMixer } from '../core/audio/SoundscapeMixer'
 import type { SoundscapeState } from '../core/audio/types'
+import { MusicPlayer } from '../core/music/MusicPlayer'
+import type { MusicState } from '../core/music/MusicPlayer'
 
 export const focusEngine = new FocusEngine()
 export const soundscape = new SoundscapeMixer()
+export const musicPlayer = new MusicPlayer()
 
 // ── 专注引擎 ────────────────────────────────────────────
 
@@ -40,6 +43,25 @@ export function useSoundscape(): SoundscapeState {
     () => soundSnap,
   )
 }
+
+// ── 音乐播放器 ──────────────────────────────────────────
+
+let musicSnap = musicPlayer.snapshot()
+musicPlayer.subscribe((s) => {
+  musicSnap = s
+})
+
+export function useMusic(): MusicState {
+  return useSyncExternalStore(
+    (onChange) => musicPlayer.subscribe(onChange),
+    () => musicSnap,
+  )
+}
+
+// 专注联动：进入专注/心流 → 压低歌曲音量，离开 → 恢复
+focusEngine.subscribe((snap) => {
+  musicPlayer.setDucked(snap.phase === 'focus' || snap.phase === 'flow')
+})
 
 // ── 阶段联动副作用 ──────────────────────────────────────
 // v0.1 内置最小的"环境管家"雏形：阶段切换时播放提示音。
