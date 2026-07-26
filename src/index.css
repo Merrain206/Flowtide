@@ -1,0 +1,366 @@
+/* ── Flowtide 全局样式 ─────────────────────────────────── */
+
+:root {
+  --bg-0: #0b1020;
+  --bg-1: #111831;
+  --bg-2: #1a2342;
+  --text-0: #e8ecf8;
+  --text-1: #9aa5c4;
+  --text-2: #5d6a8f;
+  --border: rgba(255, 255, 255, 0.08);
+
+  --c-idle: #5d6a8f;
+  --c-focus: #4f8cff;
+  --c-flow: #b18cff;
+  --c-break: #43c6ac;
+
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(ellipse at 50% -20%, var(--bg-2), var(--bg-0) 65%);
+  color: var(--text-0);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── 布局 ─────────────────────────────────────────────── */
+
+.app {
+  width: 100%;
+  max-width: 980px;
+  padding: 40px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  transition: background 1.2s ease;
+}
+
+.app-header {
+  text-align: center;
+}
+
+.logo {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(100deg, #4f8cff, #43c6ac);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.logo-cn {
+  font-size: 18px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.tagline {
+  margin-top: 8px;
+  color: var(--text-1);
+  font-size: 14px;
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--text-2);
+  font-size: 12px;
+  padding-top: 8px;
+}
+
+/* ── 面板 ─────────────────────────────────────────────── */
+
+.panel {
+  background: color-mix(in srgb, var(--bg-1) 88%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panel-title {
+  font-size: 17px;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* ── 番茄钟面板 ───────────────────────────────────────── */
+
+.phase-badge {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  transition: background 0.6s ease;
+}
+
+.phase-hint {
+  color: var(--text-1);
+  font-size: 13px;
+}
+
+.ring-wrap {
+  position: relative;
+  width: 260px;
+  margin: 8px auto 20px;
+}
+
+.ring {
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--bg-2);
+  stroke-width: 10;
+}
+
+.ring-progress {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear, stroke 0.6s ease;
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.time-display {
+  font-size: 52px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+}
+
+.time-sub {
+  color: var(--text-1);
+  font-size: 13px;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn {
+  padding: 9px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-0);
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.2);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.primary {
+  background: linear-gradient(100deg, #4f8cff, #43c6ac);
+  border: none;
+  font-weight: 600;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text-2);
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+/* ── 声景面板 ─────────────────────────────────────────── */
+
+.preset-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.preset-chip {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-chip.active {
+  border-color: var(--c-focus);
+  color: var(--text-0);
+  background: color-mix(in srgb, var(--c-focus) 18%, var(--bg-2));
+}
+
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.layer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.layer-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.layer-desc {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.variant-row {
+  display: flex;
+  gap: 6px;
+}
+
+.variant-chip {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-1);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.variant-chip.active {
+  border-color: var(--c-break);
+  color: var(--text-0);
+  background: color-mix(in srgb, var(--c-break) 16%, transparent);
+}
+
+.master-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.master-row .slider {
+  flex: 1;
+}
+
+/* ── 滑块 ─────────────────────────────────────────────── */
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-2);
+  outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-0);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+.slider:disabled {
+  opacity: 0.35;
+}
+
+.slider:disabled::-webkit-slider-thumb {
+  cursor: default;
+}
