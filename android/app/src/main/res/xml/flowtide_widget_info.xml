@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小组件元数据：2x1 统计卡片，不自动轮询（数据由 App 主动推送刷新） -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/flowtide_widget"
+    android:minWidth="180dp"
+    android:minHeight="60dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

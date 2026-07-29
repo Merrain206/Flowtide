@@ -20,10 +20,27 @@ import type {
   TodayStats,
 } from './types'
 import { DEFAULT_CONFIG } from './types'
+import { addSession, getSessions } from '../storage/db'
 
 const MIN = 60_000
-const STORAGE_KEY = 'flowtide.sessions.v1'
 const CONFIG_KEY = 'flowtide.config.v1'
+const RUNTIME_KEY = 'flowtide.focus.runtime'
+/** 超过此时长的残留运行态直接丢弃（隔夜打开不再恢复） */
+const RUNTIME_MAX_AGE = 12 * 3600_000
+
+/** 运行态快照（v0.7 会话恢复）：关页/杀后台后重开可续跑或自动结算 */
+interface RuntimeState {
+  phase: FocusPhase
+  phaseStartedAt: number
+  phaseTotalMs: number
+  paused: boolean
+  pausedAt: number
+  cycleCount: number
+  flowStartedAt: number
+  focusStartedAt: number
+  nextBreakMs: number
+  savedAt: number
+}
 
 export class FocusEngine {
   private config: FocusConfig
@@ -41,15 +58,32 @@ export class FocusEngine {
   /** 本轮锁定的休息时长（进入休息时计算） */
   private nextBreakMs = 0
 
-  private sessions: SessionRecord[] = []
+  /** 今日缓存（启动时从 IDB 加载，每次新增 session 同步更新） */
+  private todayCache: SessionRecord[] = []
   private timer: ReturnType<typeof setInterval> | null = null
   private listeners = new Set<FocusListener>()
   private eventListeners = new Set<FocusEventListener>()
+  /** 当前专注轮次开始时间戳（用于写入 SessionRecord.startedAt） */
+  private focusStartedAt = 0
+  /** 恢复提示（v0.7）：UI 取走一次后清空 */
+  private recoveryNotice: string | null = null
 
   constructor() {
     this.config = loadConfig()
-    this.sessions = loadSessions()
     this.nextBreakMs = this.config.shortBreakMinutes * MIN
+    this.restoreRuntime()
+    this.initFromDB()
+  }
+
+  /** 异步初始化：从 IDB 加载今日数据到缓存 */
+  private async initFromDB() {
+    try {
+      const dayStart = new Date().setHours(0, 0, 0, 0)
+      this.todayCache = await getSessions(dayStart, Date.now())
+      this.notify()
+    } catch {
+      // IDB 不可用时降级为空缓存
+    }
   }
 
   // ── 订阅 ──────────────────────────────────────────────
@@ -65,11 +99,19 @@ export class FocusEngine {
     return () => this.eventListeners.delete(fn)
   }
 
+  /** 取走一次恢复提示（TimerPanel 挂载时调用，取后自动清空） */
+  consumeRecoveryNotice(): string | null {
+    const msg = this.recoveryNotice
+    this.recoveryNotice = null
+    return msg
+  }
+
   // ── 用户操作 ──────────────────────────────────────────
 
   /** 开始一轮专注 */
   startFocus() {
     if (this.phase === 'focus' || this.phase === 'flow') return
+    this.focusStartedAt = Date.now()
     this.enterPhase('focus', this.config.focusMinutes * MIN)
     this.emit({ type: 'focusStarted' })
   }
@@ -164,23 +206,26 @@ export class FocusEngine {
   private finishFocusAndRest() {
     const flowMs = this.flowStartedAt ? Date.now() - this.flowStartedAt : 0
     const record: SessionRecord = {
+      startedAt: this.focusStartedAt,
       endedAt: Date.now(),
       focusMs: this.config.focusMinutes * MIN,
       flowMs,
     }
-    this.sessions.push(record)
-    saveSessions(this.sessions)
+    // 同步更新今日缓存
+    this.todayCache.push(record)
+    // 异步写入 IDB
+    void addSession(record)
 
     this.cycleCount += 1
     this.nextBreakMs = this.upcomingBreakMs(flowMs)
     const isLong = this.cycleCount % this.config.cyclesPerLongBreak === 0
     this.enterPhase(isLong ? 'longBreak' : 'shortBreak', this.nextBreakMs)
-    this.emit({ type: 'breakStarted' })
+    this.emit({ type: 'breakStarted', record })
   }
 
   /**
    * 自适应休息时长：基础休息 + 心流补偿。
-   * 心流每延长 5 分钟，休息追加 1 分钟（v0.2 将由精力曲线模型接管）。
+   * 心流每延长 5 分钟，休息追加 1 分钟（v0.4 将由精力曲线模型接管）。
    */
   private upcomingBreakMs(flowMs: number): number {
     const isLong = (this.cycleCount + (this.phase === 'flow' ? 1 : 0)) %
@@ -212,14 +257,11 @@ export class FocusEngine {
   }
 
   private todayStats(): TodayStats {
-    const dayStart = new Date().setHours(0, 0, 0, 0)
     let focusMs = 0
     let cycles = 0
-    for (const s of this.sessions) {
-      if (s.endedAt >= dayStart) {
-        focusMs += s.focusMs + s.flowMs
-        cycles += 1
-      }
+    for (const s of this.todayCache) {
+      focusMs += s.focusMs + s.flowMs
+      cycles += 1
     }
     return { focusMs, cycles }
   }
@@ -231,30 +273,137 @@ export class FocusEngine {
   private notify() {
     const snap = this.snapshot()
     this.listeners.forEach((fn) => fn(snap))
+    this.persistRuntime()
   }
 
   private emit(event: FocusEvent) {
     this.eventListeners.forEach((fn) => fn(event))
   }
-}
 
-// ── 本地持久化（local-first：数据只存本地） ──────────────
+  // ── 运行态持久化与恢复（v0.7）────────────────────
 
-function loadSessions(): SessionRecord[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as SessionRecord[]) : []
-  } catch {
-    return []
+  /** 每次快照变化时同步写入；回到 idle 即清除 */
+  private persistRuntime() {
+    try {
+      if (this.phase === 'idle') {
+        localStorage.removeItem(RUNTIME_KEY)
+        return
+      }
+      const rt: RuntimeState = {
+        phase: this.phase,
+        phaseStartedAt: this.phaseStartedAt,
+        phaseTotalMs: this.phaseTotalMs,
+        paused: this.paused,
+        pausedAt: this.pausedAt,
+        cycleCount: this.cycleCount,
+        flowStartedAt: this.flowStartedAt,
+        focusStartedAt: this.focusStartedAt,
+        nextBreakMs: this.nextBreakMs,
+        savedAt: Date.now(),
+      }
+      localStorage.setItem(RUNTIME_KEY, JSON.stringify(rt))
+    } catch { /* 存不了不影响计时 */ }
+  }
+
+  /**
+   * 启动时检测残留运行态：
+   *   未到点 → 无缝续跑；已到点 → 按“到点时刻”正常结算；
+   *   超过 12 小时的残留直接丢弃。
+   */
+  private restoreRuntime() {
+    let rt: RuntimeState | null = null
+    try {
+      const raw = localStorage.getItem(RUNTIME_KEY)
+      rt = raw ? (JSON.parse(raw) as RuntimeState) : null
+      localStorage.removeItem(RUNTIME_KEY)
+    } catch { return }
+    if (!rt || rt.phase === 'idle') return
+
+    const now = Date.now()
+    const awayMs = now - rt.savedAt
+    if (awayMs > RUNTIME_MAX_AGE || awayMs < 0) return
+
+    this.cycleCount = rt.cycleCount
+    this.focusStartedAt = rt.focusStartedAt
+    this.nextBreakMs = rt.nextBreakMs
+
+    // 暂停中离开：时间本来就冻结，原样恢复
+    if (rt.paused) {
+      this.phase = rt.phase
+      this.phaseStartedAt = rt.phaseStartedAt
+      this.phaseTotalMs = rt.phaseTotalMs
+      this.paused = true
+      this.pausedAt = rt.pausedAt
+      this.flowStartedAt = rt.flowStartedAt
+      this.ensureTimer()
+      this.recoveryNotice = '已恢复暂停中的番茄钟，点继续接着走'
+      return
+    }
+
+    const elapsed = now - rt.phaseStartedAt
+
+    // 未到点：无缝续跑（基于时间戳计时，离开的时间自然计入）
+    if (elapsed < rt.phaseTotalMs) {
+      this.phase = rt.phase
+      this.phaseStartedAt = rt.phaseStartedAt
+      this.phaseTotalMs = rt.phaseTotalMs
+      this.flowStartedAt = rt.flowStartedAt
+      this.ensureTimer()
+      if (awayMs > 10_000) {
+        this.recoveryNotice = `已恢复上次进度（离开 ${fmtAway(awayMs)} 已计入）`
+      }
+      return
+    }
+
+    // 已到点：按到点时刻结算
+    if (rt.phase === 'focus' || rt.phase === 'flow') {
+      // 专注到点时刻；flow 期间离开则按最后在线时刻落地（离开的时间不算心流）
+      const focusEndAt = rt.phase === 'focus' ? rt.phaseStartedAt + rt.phaseTotalMs : rt.savedAt
+      const flowMs = rt.phase === 'flow' && rt.flowStartedAt ? rt.savedAt - rt.flowStartedAt : 0
+      const record: SessionRecord = {
+        startedAt: rt.focusStartedAt,
+        endedAt: focusEndAt,
+        focusMs: rt.phase === 'focus' ? rt.phaseTotalMs : this.config.focusMinutes * MIN,
+        flowMs,
+      }
+      // 写入后刷新今日缓存（initFromDB 会重新拉取，避免双计）
+      void addSession(record).then(() => this.initFromDB())
+
+      this.cycleCount += 1
+      const isLong = this.cycleCount % this.config.cyclesPerLongBreak === 0
+      const breakMs = (isLong ? this.config.longBreakMinutes : this.config.shortBreakMinutes) * MIN
+        + Math.round(flowMs / 5)
+      const breakElapsed = now - focusEndAt
+
+      if (breakElapsed < breakMs) {
+        // 休息进行中
+        this.phase = isLong ? 'longBreak' : 'shortBreak'
+        this.phaseStartedAt = focusEndAt
+        this.phaseTotalMs = breakMs
+        this.nextBreakMs = breakMs
+        this.ensureTimer()
+        this.recoveryNotice = '离开期间专注已到点入账 ✅ 现在是休息时间'
+      } else {
+        // 休息也过完了 → 回 idle
+        this.nextBreakMs = this.config.shortBreakMinutes * MIN
+        this.recoveryNotice = '离开时的专注已自动结算入账 ✅'
+      }
+    } else {
+      // 休息到点 → 回 idle
+      this.recoveryNotice = '休息已结束，可以开始新一轮专注'
+    }
   }
 }
 
-function saveSessions(sessions: SessionRecord[]) {
-  // 只保留最近 30 天，避免无限增长
-  const cutoff = Date.now() - 30 * 24 * 60 * MIN
-  const trimmed = sessions.filter((s) => s.endedAt >= cutoff)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+/** 离开时长口语化 */
+function fmtAway(ms: number): string {
+  const min = Math.round(ms / MIN)
+  if (min < 1) return '不到 1 分钟'
+  if (min < 60) return `${min} 分钟`
+  return `${Math.floor(min / 60)} 小时 ${min % 60} 分钟`
 }
+
+// ── 本地持久化（config 仍用 localStorage，sessions 已迁移到 IDB）──
 
 function loadConfig(): FocusConfig {
   try {

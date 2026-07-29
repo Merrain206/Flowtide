@@ -6,13 +6,17 @@
  * 休息/待命时恢复 —— 这是音乐与专注引擎的第一次真正联动。
  *
  * 注：本地文件通过 ObjectURL 播放，刷新页面后需重新导入
- * （浏览器无法持久化文件句柄，v0.2 Tauri 版将支持记住本地曲库）。
+ * （浏览器无法持久化文件句柄，Tauri 版将支持记住本地曲库）。
  */
 
 export interface Track {
   id: string
   name: string
   url: string
+  /** local = 本地导入文件；netease = 网易云直链（url 为空时播放前懒解析） */
+  source: 'local' | 'netease'
+  /** 演唱者（网易云曲目才有） */
+  artist?: string
 }
 
 export interface MusicState {
@@ -48,6 +52,10 @@ export class MusicPlayer {
   private ducked = false
   private fadeTimer: ReturnType<typeof setInterval> | null = null
   private listeners = new Set<MusicListener>()
+  /** 网易云直链懒解析器（外部注入，核心层不依赖 API 模块） */
+  private urlResolver: ((id: string) => Promise<string | null>) | null = null
+  /** 懒解析令牌：解析期间用户切歌时作废旧请求 */
+  private resolveToken = 0
 
   constructor() {
     const pref = loadPref()
@@ -77,6 +85,7 @@ export class MusicPlayer {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         name: file.name.replace(/\.[^.]+$/, ''),
         url: URL.createObjectURL(file),
+        source: 'local',
       })
     }
     // 首次导入自动定位到第一首（不自动播放，把决定权留给用户）
@@ -87,11 +96,52 @@ export class MusicPlayer {
     this.notify()
   }
 
+  /** 播放一首网易云直链曲目（入队并立即播放） */
+  playRemote(track: { id: string; name: string; url: string; artist?: string }) {
+    // 同一首已在队列则直接重新定位，避免重复入队
+    const existing = this.tracks.findIndex((t) => t.source === 'netease' && t.id === track.id)
+    if (existing !== -1) {
+      this.tracks[existing] = { ...this.tracks[existing], url: track.url }
+      this.select(existing)
+      return
+    }
+    this.tracks.push({
+      id: track.id,
+      name: track.name,
+      url: track.url,
+      source: 'netease',
+      artist: track.artist,
+    })
+    this.select(this.tracks.length - 1)
+  }
+
+  /** 注入网易云直链解析器（歌单导入曲目播放时懒拉取，直链会过期故不预先解析） */
+  setUrlResolver(fn: (id: string) => Promise<string | null>) {
+    this.urlResolver = fn
+  }
+
+  /** 批量导入网易云曲目（不带直链），返回实际新增数；已在队列的自动去重 */
+  addRemoteTracks(list: { id: string; name: string; artist?: string }[]): number {
+    let added = 0
+    for (const t of list) {
+      if (this.tracks.some((x) => x.source === 'netease' && x.id === t.id)) continue
+      this.tracks.push({ id: t.id, name: t.name, url: '', source: 'netease', artist: t.artist })
+      added++
+    }
+    // 首次导入自动定位到第一首（不自动播放，与本地导入一致）
+    if (this.currentIndex === -1 && this.tracks.length > 0) {
+      this.currentIndex = 0
+    }
+    if (added > 0) this.notify()
+    return added
+  }
+
   removeTrack(id: string) {
     const idx = this.tracks.findIndex((t) => t.id === id)
     if (idx === -1) return
     const removingCurrent = idx === this.currentIndex
-    URL.revokeObjectURL(this.tracks[idx].url)
+    // 仅本地 ObjectURL 需要释放，网易云远程链接无需
+    if (this.tracks[idx].url.startsWith('blob:')) URL.revokeObjectURL(this.tracks[idx].url)
     this.tracks.splice(idx, 1)
 
     if (removingCurrent) {
@@ -114,8 +164,43 @@ export class MusicPlayer {
   select(index: number) {
     if (index < 0 || index >= this.tracks.length) return
     this.currentIndex = index
-    this.audio.src = this.tracks[index].url
+    const track = this.tracks[index]
+    // 歌单导入的曲目无直链 → 播放时懒解析（每次现拉，避免直链过期）
+    if (track.source === 'netease' && !track.url) {
+      void this.resolveAndPlay(index, 0)
+      return
+    }
+    this.audio.src = track.url
     void this.audio.play()
+  }
+
+  /** 懒解析直链并播放；受限曲目自动跳下一首（最多跳一圈防死循环） */
+  private async resolveAndPlay(index: number, skipped: number) {
+    const track = this.tracks[index]
+    this.notify()
+    const token = ++this.resolveToken
+    const url = this.urlResolver
+      ? await this.urlResolver(track.id).catch(() => null)
+      : null
+    // 解析期间用户已切歌 → 丢弃结果
+    if (token !== this.resolveToken || this.currentIndex !== index) return
+    if (url) {
+      this.audio.src = url
+      void this.audio.play()
+      this.notify()
+      return
+    }
+    if (skipped < this.tracks.length - 1) {
+      const nextIdx = (index + 1) % this.tracks.length
+      this.currentIndex = nextIdx
+      const next = this.tracks[nextIdx]
+      if (next.source === 'netease' && !next.url) {
+        void this.resolveAndPlay(nextIdx, skipped + 1)
+      } else {
+        this.audio.src = next.url
+        void this.audio.play()
+      }
+    }
   }
 
   toggle() {
@@ -164,6 +249,12 @@ export class MusicPlayer {
     this.ducked = target
     this.applyVolume(true)
     this.notify()
+  }
+
+  /** 休息舒缓模式（v0.8）：降低播放速率营造慢节奏，保持音高不变 */
+  setSoothe(on: boolean) {
+    this.audio.preservesPitch = true
+    this.audio.playbackRate = on ? 0.85 : 1
   }
 
   /** 平滑渐变到目标音量，避免突兀 */

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtide 心流潮汐 · 下载</title>
+  <meta name="description" content="Flowtide 心流潮汐 —— 让专注与休息像潮汐一样自然涨落的 AI 专注番茄钟。" />
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --text-0: #1a2233;
+      --text-1: #4a5568;
+      --text-2: #8a94a6;
+      --line: #e8edf5;
+      --c-focus: #2e7cf6;
+      --c-break: #3fbf9f;
+      --mint-soft: #e6f7f2;
+      --blue-soft: #eaf2fe;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-full: 999px;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text-0);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 48px 20px 64px; }
+    header { text-align: center; margin-bottom: 40px; }
+    .logo { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-cn { font-size: 18px; color: var(--text-2); font-weight: 500; margin-left: 6px; }
+    .tagline { color: var(--text-1); margin-top: 10px; font-size: 15px; }
+    .wave {
+      display: block; margin: 18px auto 0; width: 96px; color: var(--c-focus); opacity: 0.7;
+    }
+    .download {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      margin: 8px 0 40px;
+    }
+    .btn-download {
+      display: inline-block;
+      background: var(--c-focus);
+      color: #fff;
+      text-decoration: none;
+      font-size: 17px;
+      font-weight: 600;
+      padding: 15px 42px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 8px 24px rgba(46, 124, 246, 0.28);
+      transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+    }
+    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(46, 124, 246, 0.34); }
+    .btn-download:active { transform: scale(0.97); }
+    .version { color: var(--text-2); font-size: 13px; }
+    .features {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 40px;
+    }
+    .feature {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 22px 16px; text-align: center;
+    }
+    .feature-emoji { font-size: 30px; }
+    .feature-title { font-weight: 600; margin: 10px 0 6px; font-size: 15px; }
+    .feature-desc { font-size: 13px; color: var(--text-1); }
+    .card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: var(--radius-lg); padding: 24px 22px; margin-bottom: 20px;
+    }
+    .card h2 { font-size: 17px; margin-bottom: 14px; }
+    .steps { list-style: none; counter-reset: step; }
+    .steps li {
+      counter-increment: step; position: relative; padding: 8px 0 8px 38px;
+      font-size: 14px; color: var(--text-1);
+    }
+    .steps li::before {
+      content: counter(step); position: absolute; left: 0; top: 8px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: var(--blue-soft); color: var(--c-focus);
+      font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+    }
+    .steps strong { color: var(--text-0); }
+    footer { text-align: center; color: var(--text-2); font-size: 12px; margin-top: 32px; }
+    @media (max-width: 520px) {
+      .features { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">Flowtide<span class="logo-cn">心流潮汐</span></div>
+      <p class="tagline">让专注与休息像潮汐一样自然涨落的 AI 专注番茄钟</p>
+      <svg class="wave" viewBox="0 0 72 12" fill="none" aria-hidden="true">
+        <path d="M2 8c5-6 9-6 14 0s9 6 14 0 9-6 14 0 9 6 14 0 9-6 12-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </header>
+
+    <div class="download">
+      <a class="btn-download" href="flowtide-0.9.1.apk" download>下载 Android APK</a>
+      <span class="version">v0.9.1 · Android 7.0+ · 约 4 MB</span>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-emoji">🌊</div>
+        <div class="feature-title">心流番茄钟</div>
+        <div class="feature-desc">专注到点自动进入心流保护，随时落地休息</div>
+      </div>
+      <div class="feature">
+        <div class="feature-emoji">🎧</div>
+        <div class="feature-title">声景 + 音乐</div>
+        <div class="feature-desc">白噪声景与网易云歌单联动，专注自动压音</div>
+      </div>
+      <div class="feature">
+        <div class="feature-emoji">📊</div>
+        <div class="feature-title">AI 复盘</div>
+        <div class="feature-desc">精力时段热力图 + AI 周报与每日计划</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>安装说明</h2>
+      <ol class="steps">
+        <li>点击上方按钮下载 APK，若浏览器提示风险请选择<strong>「仍要下载」</strong>。</li>
+        <li>打开安装时如提示未知来源，前往<strong>设置允许「安装未知应用」</strong>后返回继续。</li>
+        <li>首次启动会引导你完成<strong>两步保活设置</strong>（允许后台运行 + 开启自启动），到点才能准时提醒。</li>
+        <li>想用网易云音乐？进入<strong>「音乐」栏目扫码登录</strong>即可播放你的歌单（cookie 只存本机）。</li>
+      </ol>
+    </div>
+
+    <footer>
+      Flowtide · 数据仅存于本地 (local-first) · 无第三方统计与广告
+    </footer>
+  </div>
+</body>
+</html>

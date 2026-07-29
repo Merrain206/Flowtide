@@ -32,12 +32,25 @@ export const DEFAULT_CONFIG: FocusConfig = {
 
 /** 单次完成的专注记录（本地持久化） */
 export interface SessionRecord {
+  /** 开始时间戳 */
+  startedAt: number
   /** 结束时间戳 */
   endedAt: number
   /** 计划内专注时长 ms */
   focusMs: number
   /** 心流延长时长 ms */
   flowMs: number
+  /** 关联的任务标题（v0.4） */
+  taskTitle?: string
+}
+
+/** 按天聚合的专注数据（用于复盘看板和精力建模） */
+export interface DailyAgg {
+  date: string
+  focusMs: number
+  flowMs: number
+  cycles: number
+  flowRatio: number
 }
 
 /** 当日统计 */
@@ -69,7 +82,7 @@ export interface FocusSnapshot {
 /** 阶段转换事件，用于触发提示音等副作用 */
 export type FocusEvent =
   | { type: 'flowStarted' }      // 专注到点，进入心流保护
-  | { type: 'breakStarted' }     // 进入休息
+  | { type: 'breakStarted'; record: SessionRecord } // 进入休息（携带本轮记录）
   | { type: 'breakEnded' }       // 休息结束，回到待命
   | { type: 'focusStarted' }     // 开始专注
 

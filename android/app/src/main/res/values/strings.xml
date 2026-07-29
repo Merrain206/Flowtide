@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Flowtide</string>
+    <string name="title_activity_main">Flowtide</string>
+    <string name="package_name">com.flowtide.app</string>
+    <string name="custom_url_scheme">com.flowtide.app</string>
+</resources>

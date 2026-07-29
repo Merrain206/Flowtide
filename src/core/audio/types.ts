@@ -5,7 +5,7 @@
  *   基底层(base)   —— 宽频环境音：雨声 / 溪流 / 白噪
  *   氛围层(ambience) —— 空间感：风声 / 咖啡馆低语感
  *   律动层(pulse)  —— 低信息量音调：双耳节拍风格的柔和嗡鸣
- * 各层音量可被用户或 Agent（v0.2）实时调节。
+ * 各层音量可被用户或 Agent（v0.3）实时调节。
  */
 
 export type LayerId = 'base' | 'ambience' | 'pulse'
@@ -36,7 +36,7 @@ export interface SoundscapeState {
   preset: string | null
 }
 
-/** 声景预设 —— v0.2 起由 Agent 按专注阶段自动切换 */
+/** 声景预设 —— v0.3 起由 Agent 按专注阶段自动切换 */
 export interface SoundscapePreset {
   name: string
   label: string

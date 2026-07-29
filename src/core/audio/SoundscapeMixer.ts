@@ -102,7 +102,7 @@ export class SoundscapeMixer {
     this.persistAndNotify()
   }
 
-  /** 应用预设（v0.2 起 Agent 按专注阶段调用） */
+  /** 应用预设（v0.3 起 Agent 按专注阶段调用） */
   applyPreset(preset: SoundscapePreset) {
     this.layers = structuredClone(preset.layers)
     this.preset = preset.name

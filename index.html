@@ -3,10 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#3fbf9f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>Flowtide · 心流潮汐</title>
+    <style>
+      /* 启动页：React 挂载前就可见，挂载后由 App 淡出移除 */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: #fafbfc;
+        transition: opacity 0.45s ease;
+      }
+      #boot-splash.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #boot-splash .bs-logo {
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        color: #16181d;
+        font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+      }
+      #boot-splash .bs-cn {
+        font-size: 14px;
+        color: #6b7280;
+        letter-spacing: 6px;
+      }
+    </style>
+    <script>
+      // 白屏急救：把未捕获错误直接画到屏幕上（方便无法连调试器的设备排障）
+      window.addEventListener('error', function (e) {
+        __ftShowErr((e.error && e.error.stack) || e.message || 'unknown error')
+      })
+      window.addEventListener('unhandledrejection', function (e) {
+        var r = e.reason
+        __ftShowErr('[promise] ' + ((r && r.stack) || (r && r.message) || String(r)))
+      })
+      function __ftShowErr(msg) {
+        var root = document.getElementById('root')
+        if (root && root.children.length > 0) return // 已正常渲染就不打扰
+        var box = document.getElementById('ft-err') || document.createElement('pre')
+        box.id = 'ft-err'
+        box.style.cssText = 'position:fixed;inset:12px;overflow:auto;background:#fff;color:#c00;font-size:12px;white-space:pre-wrap;z-index:9999;padding:12px;border:2px solid #c00;border-radius:8px'
+        box.textContent += msg + '\n\nUA: ' + navigator.userAgent + '\n\n'
+        document.body.appendChild(box)
+      }
+    </script>
   </head>
   <body>
+    <div id="boot-splash" aria-hidden="true">
+      <div class="bs-logo">Flowtide</div>
+      <svg width="72" height="12" viewBox="0 0 72 12" fill="none">
+        <path d="M2 8c5-6 9-6 14 0s9 6 14 0 9-6 14 0 9 6 14 0 9-6 12-3" stroke="#3fbf9f" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <div class="bs-cn">心流潮汐</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

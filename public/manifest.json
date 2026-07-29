@@ -1,0 +1,18 @@
+{
+  "name": "Flowtide 心流潮汐",
+  "short_name": "Flowtide",
+  "description": "AI 专注环境营造器 —— 让专注与休息像潮汐一样自然涨落",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafbfc",
+  "theme_color": "#3fbf9f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
