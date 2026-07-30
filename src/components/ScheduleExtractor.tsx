@@ -3,6 +3,7 @@
  *
  * 用户粘贴今日/本周日程文本，AI 智能提取任务并批量导入番茄钟。
  * 支持识别：事项名称、时间点、优先级、认知负荷（高/低）、预估番茄数。
+ * v0.9.3：由侧边抽屉改为居中浮动窗口（亮色）。
  */
 
 import { useState } from 'react'
@@ -165,13 +166,14 @@ export function ScheduleExtractor({ open, onClose }: Props) {
   if (!open) return null
 
   return (
-    <div className="dev-panel-overlay" onClick={(e) => { if (e.target === e.currentTarget) { onClose(); resetState() } }}>
-      <aside className="dev-panel schedule-extractor">
-        <header className="dev-head">
-          <h3 className="dev-title">📅 AI 日程提取</h3>
+    <div className="float-overlay" onClick={(e) => { if (e.target === e.currentTarget) { onClose(); resetState() } }}>
+      <div className="float-window schedule-extractor">
+        <header className="float-head">
+          <h3 className="float-title">📅 AI 日程提取</h3>
           <button className="btn ghost" onClick={() => { onClose(); resetState() }}>✕</button>
         </header>
 
+        <div className="float-body">
         {/* 输入区 */}
         {!tasks.length && !loading && (
           <div className="extract-input-area">
@@ -257,7 +259,8 @@ export function ScheduleExtractor({ open, onClose }: Props) {
             ✅ 导入成功！任务已加入番茄钟队列
           </div>
         )}
-      </aside>
+        </div>
+      </div>
     </div>
   )
 }

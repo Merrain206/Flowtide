@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-web
 dist-ssr
 *.local
 
@@ -30,3 +31,6 @@ android/*.keystore
 # 服务器基础设施配置（个人服务器专用，不入库）
 cloudflared-config.yml
 nginx-*.conf
+
+# 发布 skill（含服务器地址，仅本地使用，不入公开仓库）
+.qoder/

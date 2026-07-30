@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "0.9.1",
-  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.1.apk",
-  "notes": "v0.9.1 体验修复：修复手机端 UI 缩放突变问题、新增启动页与隐私同意弹窗，补齐用户协议与隐私文档。"
+  "versionCode": 5,
+  "versionName": "0.9.3",
+  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.3.apk",
+  "notes": "v0.9.3 体验优化：目标计划与 AI 日程提取改为亮色浮动窗口，告别侧边暗色抽屉；栏目编号按 任务→声景→音乐→复盘 重新排序。"
 }

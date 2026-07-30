@@ -37,7 +37,7 @@ export function MusicPanel() {
   return (
     <section className="panel music-panel">
       <header className="panel-head">
-        <span className="sec-no">03</span>
+        <span className="sec-no">04</span>
         <h2 className="panel-title">音乐</h2>
       </header>
 

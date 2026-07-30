@@ -1,23 +1,26 @@
 /**
- * Flowtide Service Worker (v0.7)
+ * Flowtide Service Worker (v0.9.3)
  *
  * 策略：HTML 网络优先 + 静态资源 Cache First
  * - index.html 必须网络优先：否则发版后旧 HTML 引用的旧哈希 JS 已不存在 → 白屏
  * - 带哈希的 JS/CSS 可以放心 Cache First（内容变则文件名变）
  * - 专注数据走 IDB，不受 SW 缓存策略影响
+ * - 路径基于注册 scope 动态计算，支持根路径与子路径（/download/flowtide/app/）部署
  */
 
-const CACHE_NAME = 'flowtide-v0.7'
+const CACHE_NAME = 'flowtide-v0.9.3'
+// 部署基路径：根部署为 '/'，子路径部署为 '/download/flowtide/app/'
+const BASE = new URL(self.registration.scope).pathname
 
 // 安装阶段：预缓存核心资源
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
-        '/favicon.svg',
+        BASE,
+        BASE + 'index.html',
+        BASE + 'manifest.json',
+        BASE + 'favicon.svg',
       ])
     })
   )
@@ -49,7 +52,7 @@ self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith(self.location.origin)) return
 
   const isHtml = event.request.mode === 'navigate'
-    || new URL(event.request.url).pathname === '/index.html'
+    || new URL(event.request.url).pathname === BASE + 'index.html'
 
   if (isHtml) {
     // 网络优先：拿到新页面就更新缓存，离线时才回退缓存
@@ -60,7 +63,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
         }
         return response
-      }).catch(() => caches.match(event.request).then((c) => c || caches.match('/index.html')))
+      }).catch(() => caches.match(event.request).then((c) => c || caches.match(BASE + 'index.html')))
     )
     return
   }
@@ -92,5 +95,5 @@ function isCacheableRequest(request) {
   const url = new URL(request.url)
   // 缓存 JS、CSS、图片、字体、SVG（HTML 已走网络优先分支）
   return /\.(js|css|png|jpg|jpeg|gif|svg|woff2?|ttf|eot)$/.test(url.pathname)
-    || url.pathname === '/manifest.json'
+    || url.pathname === BASE + 'manifest.json'
 }

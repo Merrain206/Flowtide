@@ -26,7 +26,8 @@ if ('serviceWorker' in navigator) {
       }
       return
     }
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    // 跟随构建 base：根部署为 /sw.js，在线尝鲜版为 /download/flowtide/app/sw.js
+    navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {
       // SW 注册失败时静默降级，不影响应用使用
     })
   })

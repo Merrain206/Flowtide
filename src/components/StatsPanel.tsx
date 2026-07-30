@@ -1,5 +1,5 @@
 /**
- * 专注复盘看板 (编号 04)
+ * 专注复盘看板 (编号 05)
  *
  * 周趋势柱状图 · 28 天热力图 · 心流占比圆环 · 连续天数 · AI 周报（v0.7）
  */
@@ -67,7 +67,7 @@ export function StatsPanel() {
     return (
       <section className="panel stats-panel">
         <header className="panel-head">
-          <span className="sec-no">04</span>
+          <span className="sec-no">05</span>
           <h2 className="panel-title">专注复盘</h2>
         </header>
         <div className="empty-state">
@@ -85,7 +85,7 @@ export function StatsPanel() {
   return (
     <section className="panel stats-panel">
       <header className="panel-head">
-        <span className="sec-no">04</span>
+        <span className="sec-no">05</span>
         <h2 className="panel-title">专注复盘</h2>
         {streak > 0 && (
           <span className="streak-badge">🔥 {streak} 天</span>

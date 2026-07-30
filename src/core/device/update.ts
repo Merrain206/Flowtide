@@ -13,7 +13,7 @@ import { Capacitor } from '@capacitor/core'
 import { App } from '@capacitor/app'
 
 /** 当前应用版本号（页面展示用；与 build.gradle / package.json 保持一致） */
-export const APP_VERSION = '0.9.1'
+export const APP_VERSION = '0.9.3'
 
 /** 下载页与版本清单地址（固定域名，不可配置） */
 const LATEST_URL = 'https://merrain.cn/download/flowtide/latest.json'

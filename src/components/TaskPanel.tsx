@@ -1,5 +1,5 @@
 /**
- * 任务面板（编号 05）—— 任务清单管理
+ * 任务面板（编号 02）—— 任务清单管理
  *
  * 简洁的任务输入框 + 列表，每个任务卡片：
  *   标题 + 认知标签（高/低）+ 预估番茄数 + 完成勾选
@@ -66,7 +66,7 @@ export function TaskPanel({ onOpenExtractor, onOpenPlan }: Props = {}) {
   return (
     <section className="panel task-panel">
       <header className="panel-head">
-        <span className="sec-no">05</span>
+        <span className="sec-no">02</span>
         <h2 className="panel-title">任务</h2>
         <span className="task-count">{pending.length} 待办</span>
         {onOpenPlan && (

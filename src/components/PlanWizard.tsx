@@ -4,6 +4,7 @@
  * 四项输入（目标/截止日期/每日投入/水平自评）→ AI 生成阶段模板 →
  * 按阶段预览（可调整每天的任务模板）→ 确认后展开成逐日计划保存，
  * 今天的任务立即派发进番茄钟队列。
+ * v0.9.3：由暗色侧边抽屉改为居中浮动窗口（亮色）。
  */
 
 import { useState } from 'react'
@@ -106,13 +107,14 @@ export function PlanWizard({ open, onClose }: Props) {
   const minDate = toDateKey(new Date(Date.now() + 86_400_000))  // 最早明天
 
   return (
-    <div className="dev-panel-overlay" onClick={(e) => { if (e.target === e.currentTarget) { onClose(); resetState() } }}>
-      <aside className="dev-panel plan-wizard">
-        <header className="dev-head">
-          <h3 className="dev-title">🎯 目标计划</h3>
+    <div className="float-overlay" onClick={(e) => { if (e.target === e.currentTarget) { onClose(); resetState() } }}>
+      <div className="float-window plan-wizard">
+        <header className="float-head">
+          <h3 className="float-title">🎯 目标计划</h3>
           <button className="btn ghost" onClick={() => { onClose(); resetState() }}>✕</button>
         </header>
 
+        <div className="float-body">
         {/* 输入表单 */}
         {!phases.length && !loading && !saved && (
           <div className="plan-form">
@@ -233,7 +235,8 @@ export function PlanWizard({ open, onClose }: Props) {
             ✅ 计划已启用！今天的任务已加入番茄钟队列
           </div>
         )}
-      </aside>
+        </div>
+      </div>
     </div>
   )
 }

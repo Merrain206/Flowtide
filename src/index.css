@@ -11,6 +11,13 @@
   --text-2: #9aa3af;
   --line: #eceef1;
 
+  /* 安全区：Capacitor 原生注入 --safe-area-inset-*，浏览器走 env()，其余回退 0 */
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+
+  /* 表单控件统一高度（解决快捷行方块大小不统一） */
+  --ctl-h: 40px;
+
   --c-idle: #c3c9d2;
   --c-focus: #2e7cf6;
   --c-flow: #8b5cf6;
@@ -78,10 +85,10 @@ body {
 .app {
   width: 100%;
   max-width: 1080px;
-  padding: 56px 28px 32px;
+  padding: calc(24px + var(--safe-top)) 28px 32px;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
 }
 
 .app-header {
@@ -198,7 +205,7 @@ body {
   }
 
   .app {
-    padding: 20px 12px 24px;
+    padding: calc(12px + var(--safe-top)) 12px 24px;
     gap: 24px;
   }
 
@@ -207,36 +214,18 @@ body {
     border-radius: 16px;
   }
 
-  .app-header {
-    padding-right: 88px; /* 给右上角齿轮/问号按钮让位 */
-  }
-
-  .logo {
-    font-size: 26px;
-  }
-
-  /* 任务输入行：输入框独占一行，控件换行排列 */
-  .task-input-row {
-    flex-wrap: wrap;
-  }
-
-  .task-input {
+  /* 任务输入行：输入框独占一行，控件换行排列
+     （双类名拉高优先级，防止被后文 .text-input { flex: 1 } 覆盖） */
+  .task-input-row .task-input {
     flex: 1 1 100%;
   }
 
   .task-input-row .cog-chip {
     flex: 1;
-    text-align: center;
   }
 
   .task-input-row .add-btn {
     flex: 1;
-  }
-
-  /* 触控友好：按钮热区放大 */
-  .stepper-btn {
-    width: 32px;
-    height: 32px;
   }
 
   .arrow-btn {
@@ -259,14 +248,14 @@ body {
     row-gap: 6px;
   }
 
-  /* 固定按钮贴边，避免遮挡内容 */
+  /* 固定按钮贴边，避免遮挡内容（避开状态栏安全区） */
   .settings-gear {
-    top: 12px;
+    top: calc(12px + var(--safe-top));
     right: 12px;
   }
 
   .guide-btn {
-    top: 12px;
+    top: calc(12px + var(--safe-top));
     right: 56px;
   }
 
@@ -1459,17 +1448,27 @@ body {
 
 .task-input-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
-  align-items: center;
+  align-items: stretch;
 }
 
-.task-input {
+/* 快捷行控件统一高度，视觉上是一排等高方块 */
+.task-input-row .task-input {
   min-width: 0;
+  height: var(--ctl-h);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .cog-chip {
-  padding: 8px 12px;
+  height: var(--ctl-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--card);
@@ -1493,15 +1492,20 @@ body {
 }
 
 .pomo-stepper {
+  height: var(--ctl-h);
   display: flex;
   align-items: center;
   gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
   flex-shrink: 0;
 }
 
 .stepper-btn {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   border: 1px solid var(--line);
   background: var(--card);
@@ -1532,8 +1536,13 @@ body {
 
 .add-btn {
   flex-shrink: 0;
-  padding: 8px 14px !important;
-  font-size: 16px;
+  height: var(--ctl-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px !important;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .task-empty {
@@ -2062,22 +2071,70 @@ body {
   margin: 0;
 }
 
+/* ── 浮动窗口（v0.9.3）—— AI 日程提取 / 目标计划共用的亮色居中弹窗 ── */
+
+.float-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+}
+
+.float-window {
+  width: 540px;
+  max-width: 100%;
+  max-height: min(84vh, 720px);
+  background: var(--card);
+  color: var(--text-0);
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: float-in 0.22s ease;
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.float-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.float-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-0);
+  margin: 0;
+}
+
+.float-body {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 窗口内列表由 .float-body 统一滚动，取消旧抽屉时代的内层限高 */
+.float-body .extract-task-list {
+  max-height: none;
+  overflow-y: visible;
+}
+
 /* AI 日程提取（v0.6） */
-
-.schedule-extractor {
-  background: #fff;
-  color: var(--text-0);
-  font-family: inherit;
-}
-
-.schedule-extractor .dev-head {
-  background: #fff;
-  border-bottom-color: var(--line);
-}
-
-.schedule-extractor .dev-title {
-  color: var(--text-0);
-}
 
 .extract-input-area {
   padding: 16px;
@@ -2588,12 +2645,14 @@ body {
 /* ── 底部导航版式：计时器常驻顶部 + 内容区 + 固定底栏 ── */
 .app.has-bottom-nav {
   max-width: 720px;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(80px + var(--safe-bottom));
 }
 
 .app.has-bottom-nav .app-main {
   display: flex;
   flex-direction: column;
+  /* 覆盖基础规则的 align-items: start，否则卡片宽度随内容收缩，宽度不统一 */
+  align-items: stretch;
   gap: 20px;
 }
 
@@ -2610,7 +2669,7 @@ body {
   display: flex;
   justify-content: center;
   gap: 6px;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 12px calc(8px + var(--safe-bottom));
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
@@ -2664,17 +2723,71 @@ body {
   transform: translateY(-1px) scale(1.06);
 }
 
-/* 声景播放中的小圆点（叠在图标右上角） */
+/* 声景播放中的小圆点（叠在图标右上角，相对图标容器定位，横竖版式通用） */
 .nav-dot {
   position: absolute;
-  top: 4px;
-  right: 50%;
-  margin-right: -14px;
+  top: -2px;
+  right: -6px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--c-break);
   animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* ── 宽屏（桌面浏览器 / 平板横屏）：顶部胶囊导航 + 双栏布局 ──
+   底部固定导航是手持设备的交互习惯，到了桌面改为顶部分段控件，
+   计时器左栏常驻，内容右栏切换，充分利用横向空间。 */
+@media (min-width: 900px) {
+  .app.has-bottom-nav {
+    max-width: 1080px;
+    padding-bottom: 32px;
+  }
+
+  .app.has-bottom-nav .app-main {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 6fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .app.has-bottom-nav .app-main > .timer-panel {
+    position: sticky;
+    top: 24px;
+  }
+
+  .bottom-nav {
+    position: static;
+    order: -1;
+    align-self: center;
+    width: auto;
+    gap: 4px;
+    padding: 5px;
+    background: var(--card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-card);
+  }
+
+  .nav-item {
+    flex-direction: row;
+    gap: 7px;
+    max-width: none;
+    padding: 9px 20px;
+    font-size: 13px;
+    border-radius: var(--radius-full);
+  }
+
+  .nav-item.active {
+    background: #f3f4f6;
+  }
+
+  .nav-item svg {
+    width: 17px;
+    height: 17px;
+  }
 }
 
 /* ── 「我的」栏目 ── */
