@@ -52,3 +52,43 @@
 > 心流保护不打断、三档专业声景、网易云音乐联动、AI 目标拆解与日程提取、
 > 精力热力图复盘。数据全部存在本机，无广告无统计，安装包不到 4 MB。
 > 支持 Android 7.0+ 与鸿蒙 4.x（APK）；Windows / Mac / 鸿蒙 NEXT 可用在线尝鲜版。当前版本 v0.9.3。
+
+## 六、同步到博客主站（merrain.cn 首页）的具体指引
+
+主站是 Next.js 15 + MDX 博客（MyBlogger，Nginx 反代 3000 端口，Cloudflare CDN），
+已有「精选项目」卡片体系（`/projects`）。**推荐做法：把 Flowtide 作为一个精选项目加进去**，
+与现有项目（课堂 AI 领航员、AI 五子棋等）同栏展示，自动出现在首页精选区。
+
+### 项目卡片字段（照着现有项目数据结构填）
+
+| 字段 | 内容 |
+|---|---|
+| 标题 | Flowtide 心流潮汐 |
+| 标记 | 精选 |
+| 描述 | AI 专注番茄钟：心流保护不打断、双层声景混音、网易云音乐联动、AI 目标拆解与日程提取、精力热力图复盘。local-first，数据只存本机，安装包不到 4 MB，已发布 Android 版与在线版。 |
+| 技术标签 | React 19 / TypeScript / Vite / Capacitor / PWA / Web Audio / IndexedDB / DeepSeek |
+| 演示链接 | `https://merrain.cn/download/flowtide/app/`（在线尝鲜版，点开即用） |
+| 下载/官网链接 | `https://merrain.cn/download/flowtide/`（介绍页，含 APK 下载） |
+| 源码链接 | `https://github.com/Merrain206/Flowtide` |
+| 配图（可选） | 可直接引用线上截图 `https://merrain.cn/download/flowtide/assets/shot-home.png`，或下载到博客仓库本地引用（竖屏 1220×2712，建议裁切/压缩后用） |
+
+### 项目详情页（若博客支持 MDX 详情页，可选）
+
+可建 `/projects/flowtide` 详情页，素材都是现成的：
+- 四张线上截图：`…/assets/shot-home.png`、`shot-sound.png`、`shot-plan.png`、`shot-extract.png`
+- 功能介绍文案：直接参考介绍页 `https://merrain.cn/download/flowtide/` 的六张功能卡 + 「为什么叫心流潮汐」段落
+- 页尾放两个按钮：「在线体验」→ app/，「下载 Android 版」→ 介绍页
+
+### 可选加分项
+
+- 首页 Hero 区或导航栏加一个轻量入口（如「🌊 Flowtide」）直指介绍页
+- 写一篇博客文章介绍开发历程（素材同上），文末挂项目链接
+
+### 注意事项（针对主站架构）
+
+1. **路由不要冲突**：`/download/flowtide/` 是 Nginx 静态直出目录（不进 Next.js），
+   博客新增页面/重写规则不要占用 `/download` 前缀，也不要在 Next.js 里加同名路由。
+2. **Cloudflare 缓存**：博客页面更新后若线上不变，去 Cloudflare 控制台清一下缓存（或等 TTL 过期）。
+3. **链接用完整 https 域名**：介绍页不在 Next.js 应用内，用 `<a href>` 而非 Next 的 `<Link>`，
+   避免客户端路由拦截 404。
+4. **老规矩不变**：第四节红线全部适用，尤其是不要碰 `latest.json`、APK 和 `app/` 目录。
