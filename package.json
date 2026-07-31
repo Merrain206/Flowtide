@@ -1,12 +1,14 @@
 {
   "name": "flowtide",
   "private": true,
-  "version": "0.9.3",
+  "version": "0.9.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:web": "tsc -b && vite build --base=/download/flowtide/app/ --outDir dist-web",
+    "bump": "node scripts/bump-version.mjs",
+    "icons": "node scripts/gen-icons.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },

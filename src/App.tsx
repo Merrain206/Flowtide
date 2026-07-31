@@ -24,6 +24,7 @@ import { PrivacyConsent } from './components/PrivacyConsent'
 import { IconTasks, IconSound, IconMusic, IconStats, IconProfile } from './components/NavIcons'
 import { focusEngine, useFocus, useSoundscape, useNotifyPermission } from './hooks/useEngines'
 import { useKeyboard } from './hooks/useKeyboard'
+import { isNative } from './core/device/native-notify'
 import { autoCheckDaily, type UpdateInfo, DOWNLOAD_PAGE, APP_VERSION } from './core/device/update'
 import { needsKeepAliveGuide } from './core/device/keepalive'
 import { hasConsented } from './data/policies'
@@ -33,6 +34,16 @@ const TABS: Tab[] = ['tasks', 'sound', 'music', 'stats', 'profile']
 
 /** 首次访问自动播放功能引导的一次性标记 */
 const GUIDE_SEEN_KEY = 'flowtide.guide.seen.v1'
+
+/** 在线版 APK 引导条的关闭标记 */
+const APK_HINT_KEY = 'flowtide.apkhint.dismissed.v1'
+
+/** Android/鸿蒙 4.x 手机浏览器访问在线版时，引导下 APK（体验完整得多） */
+function shouldHintApk(): boolean {
+  if (isNative()) return false
+  if (!/android/i.test(navigator.userAgent)) return false
+  try { return localStorage.getItem(APK_HINT_KEY) !== '1' } catch { return true }
+}
 
 function App() {
   useNotifyPermission()
@@ -46,6 +57,7 @@ function App() {
   const [keepAliveGuide, setKeepAliveGuide] = useState(false)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
   const [consented, setConsented] = useState(hasConsented)
+  const [apkHint, setApkHint] = useState(shouldHintApk)
 
   // 启动页：品牌展示约 0.9s 后淡出移除（index.html 中的 #boot-splash）
   useEffect(() => {
@@ -79,7 +91,8 @@ function App() {
     onToggleFocus: () => {
       const snap = focusEngine.snapshot()
       if (snap.paused) focusEngine.resume()
-      else focusEngine.startFocus()
+      else if (snap.phase === 'idle') focusEngine.startFocus()
+      else focusEngine.pause()
     },
     onLandRest: () => {
       if (focusEngine.snapshot().phase === 'flow') focusEngine.advance()
@@ -114,6 +127,20 @@ function App() {
           <span className="update-banner-actions">
             <button className="btn primary" onClick={() => window.open(update.url || DOWNLOAD_PAGE, '_blank')}>去下载</button>
             <button className="btn ghost" onClick={() => setUpdate(null)}>稍后</button>
+          </span>
+        </div>
+      )}
+
+      {/* 在线版引导：Android 手机浏览器访问时推荐下 APK（锁屏提醒/保活仅原生版支持） */}
+      {consented && apkHint && (
+        <div className="update-banner">
+          <span>手机用户推荐安装 App 版，锁屏提醒、后台计时更可靠</span>
+          <span className="update-banner-actions">
+            <button className="btn primary" onClick={() => window.open(DOWNLOAD_PAGE, '_blank')}>去下载</button>
+            <button className="btn ghost" onClick={() => {
+              setApkHint(false)
+              try { localStorage.setItem(APK_HINT_KEY, '1') } catch { /* 忽略 */ }
+            }}>不再提示</button>
           </span>
         </div>
       )}

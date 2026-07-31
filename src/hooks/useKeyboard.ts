@@ -1,10 +1,10 @@
 /**
  * 键盘快捷键 hook（v0.5）
  *
- * Space:       开始/暂停专注
+ * Space:       开始/暂停/继续专注
  * L:           落地休息（flow 阶段）
  * S:           跳过休息（break 阶段）
- * 1-4:         切换右侧 Tab
+ * 1-5:         切换栏目 Tab
  * ?:           打开功能引导
  * Esc:         关闭浮层/抖屉
  * Ctrl+Shift+D: 打开开发者面板
@@ -53,6 +53,9 @@ export function useKeyboard(callbacks: KeyboardCallbacks) {
           break
         case '4':
           callbacks.onSwitchTab(3)
+          break
+        case '5':
+          callbacks.onSwitchTab(4)
           break
         case '?':
           callbacks.onOpenGuide()

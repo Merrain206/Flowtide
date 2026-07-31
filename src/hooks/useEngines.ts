@@ -21,6 +21,7 @@ import { vibrate } from '../core/device/haptics'
 import { acquireWakeLock, releaseWakeLock, armReacquire } from '../core/device/wakelock'
 import { initNativeNotify } from '../core/device/native-notify'
 import { initLiveTimer } from '../core/device/live-timer'
+import { initTabTitle } from '../core/device/tab-title'
 import { initSoundscapeSchedule } from '../core/audio/schedule'
 import { songUrl } from '../core/music/netease-api'
 
@@ -54,6 +55,9 @@ initNativeNotify(focusEngine)
 
 // 灵动岛实况通知（v0.8）：专注/休息进度同步到状态栏胶囊与锁屏卡片；Web 环境空操作
 initLiveTimer(focusEngine)
+
+// 标签页标题倒计时（v0.9.4）：桌面浏览器切标签页也能看进度；APK 端空操作
+initTabTitle(focusEngine)
 
 // 声景定时（v0.8）：跨时段自动切换预设（默认关闭，设置中开启）
 initSoundscapeSchedule(soundscape)

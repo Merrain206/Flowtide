@@ -20,7 +20,8 @@ export function sendNotify(title: string, body: string) {
   try {
     new Notification(title, {
       body,
-      icon: '/favicon.svg',
+      // 跟随构建 base：在线尝鲜版部署在子路径，硬编码 /favicon.svg 会 404
+      icon: import.meta.env.BASE_URL + 'favicon.svg',
       silent: false,
     })
   } catch {
