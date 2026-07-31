@@ -52,3 +52,19 @@ export interface PlanSnapshot {
   /** 当前活跃计划（同一时间最多一个） */
   activePlan: import('../storage/db').PlanRecord | null
 }
+
+/**
+ * 跨天承接提示（v0.9.5）——
+ * 新的一天到来、但昨天派发过的阶段还没做完时，先询问用户如何安排，
+ * 而不是直接把今天的任务叠加进队列。
+ */
+export interface DayHandoff {
+  /** 上一段已派发阶段名 */
+  prevPhase: string
+  /** 今天原定阶段名 */
+  todayPhase: string
+  /** 该计划在队列里未完成的任务数 */
+  pendingCount: number
+  /** 未完成任务标题（最多取前几条用于展示） */
+  pendingTitles: string[]
+}

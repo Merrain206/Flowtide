@@ -15,8 +15,8 @@ import {
   deletePlan as dbDeletePlan,
 } from '../storage/db'
 import type { TaskEngine } from '../task/TaskEngine'
-import type { PlanSnapshot, PlanProgress, PlanPhase } from './types'
-import { todayKey, expandPhases } from './plan-llm'
+import type { PlanSnapshot, PlanProgress, PlanPhase, DayHandoff } from './types'
+import { todayKey, toDateKey, expandPhases } from './plan-llm'
 
 type PlanListener = (snap: PlanSnapshot) => void
 
@@ -118,7 +118,9 @@ export class PlanEngine {
 
     // 今天
     const day = active.days.find((d) => d.date === today)
-    if (day && !day.dispatched) {
+    // 若昨天派发过的阶段还有未完成任务，先不自动派发今天，
+    // 交给用户在计划卡上决定（承接昨天 / 照常推进），避免默默跳到下一阶段
+    if (day && !day.dispatched && !this.computeHandoff(active)) {
       for (const t of day.tasks) {
         await this.taskEngine.addTask(t.title, t.cognition, t.pomodoros, t.time, active.id)
       }
@@ -130,6 +132,67 @@ export class PlanEngine {
       await dbUpdatePlan(active)
       this.emit()
     }
+  }
+
+  // ── 跨天承接（v0.9.5）───────────────────────
+
+  /**
+   * 判断是否处于“新的一天到了、但昨天阶段没做完”的状态：
+   * 今天有计划且尚未派发 + 之前有已派发的天 + 该计划队列里还有未完成任务。
+   * 命中时 dispatchToday 会暂缓今天的派发，由 UI 弹出询问。
+   */
+  private computeHandoff(active: PlanRecord): DayHandoff | null {
+    const today = todayKey()
+    const todayDay = active.days.find((d) => d.date === today)
+    if (!todayDay || todayDay.dispatched) return null
+    const prevDispatched = active.days.filter((d) => d.date < today && d.dispatched)
+    if (prevDispatched.length === 0) return null  // 计划第一天，没有“昨天”
+    const pending = this.taskEngine.snapshot().tasks
+      .filter((t) => t.planId === active.id && !t.done)
+    if (pending.length === 0) return null  // 昨天都做完了，直接推进即可
+    return {
+      prevPhase: prevDispatched[prevDispatched.length - 1].phase,
+      todayPhase: todayDay.phase,
+      pendingCount: pending.length,
+      pendingTitles: pending.map((t) => t.title).slice(0, 6),
+    }
+  }
+
+  /** 供 UI 读取：当前是否需要弹“承接昨天”询问（null = 不需要） */
+  getDayHandoff(): DayHandoff | null {
+    const active = this.plans.find((p) => p.status === 'active')
+    return active ? this.computeHandoff(active) : null
+  }
+
+  /** 照常推进：接受叠加，直接把今天的任务派发到队列（昨天未完成的仍留在队列） */
+  async continueToday(): Promise<void> {
+    const active = this.plans.find((p) => p.status === 'active')
+    if (!active) return
+    const today = todayKey()
+    const day = active.days.find((d) => d.date === today)
+    if (!day || day.dispatched) return
+    for (const t of day.tasks) {
+      await this.taskEngine.addTask(t.title, t.cognition, t.pomodoros, t.time, active.id)
+    }
+    day.dispatched = true
+    await dbUpdatePlan(active)
+    this.emit()
+  }
+
+  /**
+   * 顺延一天：今天（含）起的所有天整体往后挪一天，
+   * 今天因此变成一个“补做日”（无新任务派发，专心消化昨天未完成的），
+   * 整份计划相应延长一天。
+   */
+  async postponeOneDay(): Promise<void> {
+    const active = this.plans.find((p) => p.status === 'active')
+    if (!active) return
+    const today = todayKey()
+    for (const d of active.days) {
+      if (d.date >= today) d.date = addDaysKey(d.date, 1)
+    }
+    await dbUpdatePlan(active)
+    this.emit()
   }
 
   // ── 自适应重排（模块三）──────────────────────────
@@ -238,4 +301,10 @@ function expandPhasesFrom(phases: PlanPhase[], start: Date): PlanDay[] {
     cursor.setDate(base.getDate() + i)
     return { ...d, date: `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}` }
   })
+}
+
+/** 在 YYYY-MM-DD 日期键上加减天数（本地时区） */
+function addDaysKey(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number)
+  return toDateKey(new Date(y, m - 1, d + n))
 }

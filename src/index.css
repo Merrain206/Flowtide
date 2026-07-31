@@ -2486,6 +2486,40 @@ body {
   color: var(--ink);
 }
 
+/* ── 跨天承接询问（v0.9.5）── */
+
+.plan-handoff-banner {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eef6ff;
+  border: 1px solid #cfe4ff;
+  color: var(--ink);
+}
+
+.plan-handoff-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.plan-handoff-text strong {
+  font-size: 13px;
+}
+
+.plan-handoff-text span {
+  font-size: 12px;
+  color: var(--muted, #667);
+  line-height: 1.5;
+}
+
+.plan-handoff-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 /* ── 会话恢复提示条（v0.7）── */
 
 .recovery-notice {

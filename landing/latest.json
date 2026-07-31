@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "0.9.4",
-  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.4.apk",
-  "notes": "v0.9.4 桌面与在线版体验补完：新增 PWA 安装图标、桌面键盘快捷键（空格/L/S/1-5）、标签页标题倒计时、桌面系统通知；Android 手机访问在线版时引导安装 App 版。"
+  "versionCode": 7,
+  "versionName": "0.9.5",
+  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.5.apk",
+  "notes": "计划跨天承接：昨天阶段没做完时不再默默跳到下一阶段，改为询问顺延一天或照常推进"
 }

@@ -21,6 +21,8 @@ export function PlanCard() {
   const [proposal, setProposal] = useState<PlanPhase[] | null>(null)
   const [rebalanceErr, setRebalanceErr] = useState<string | null>(null)
   const [rebalanceDone, setRebalanceDone] = useState(false)
+  // 跨天承接询问（v0.9.5）
+  const [handoffBusy, setHandoffBusy] = useState(false)
 
   if (!activePlan) return null
 
@@ -39,6 +41,21 @@ export function PlanCard() {
   }
 
   const suggestRebalance = !rebalanceDismissed && !proposal && !rebalanceDone && planEngine.needsRebalance()
+
+  // 新的一天到了、但昨天阶段还没做完时，先询问而不是直接跳到下一阶段
+  const handoff = planEngine.getDayHandoff()
+
+  async function handleContinueToday() {
+    if (handoffBusy) return
+    setHandoffBusy(true)
+    try { await planEngine.continueToday() } finally { setHandoffBusy(false) }
+  }
+
+  async function handlePostpone() {
+    if (handoffBusy) return
+    setHandoffBusy(true)
+    try { await planEngine.postponeOneDay() } finally { setHandoffBusy(false) }
+  }
 
   async function handleRebalance() {
     const ctx = planEngine.getRebalanceContext()
@@ -94,6 +111,27 @@ export function PlanCard() {
           <span className="plan-card-today">今日不在计划区间</span>
         )}
       </div>
+
+      {/* 跨天承接询问（v0.9.5）：昨天阶段未完成时不默默跳到今天 */}
+      {handoff && (
+        <div className="plan-handoff-banner">
+          <div className="plan-handoff-text">
+            <strong>“{handoff.prevPhase}”还没做完</strong>
+            <span>
+              还剩 {handoff.pendingCount} 项未完成
+              {handoff.pendingTitles.length > 0 && `：${handoff.pendingTitles.join('、')}`}。今天怎么安排？
+            </span>
+          </div>
+          <div className="plan-handoff-actions">
+            <button className="btn primary plan-rebalance-btn" disabled={handoffBusy} onClick={() => void handlePostpone()}>
+              顺延一天，先补昨天
+            </button>
+            <button className="btn ghost plan-rebalance-btn" disabled={handoffBusy} onClick={() => void handleContinueToday()}>
+              照常推进今天
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 重排建议横幅（模块三） */}
       {suggestRebalance && (

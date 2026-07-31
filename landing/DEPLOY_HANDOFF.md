@@ -92,3 +92,30 @@
 3. **链接用完整 https 域名**：介绍页不在 Next.js 应用内，用 `<a href>` 而非 Next 的 `<Link>`，
    避免客户端路由拦截 404。
 4. **老规矩不变**：第四节红线全部适用，尤其是不要碰 `latest.json`、APK 和 `app/` 目录。
+
+### ⚠ 重要：版本号不要硬编码（务必读这条）
+
+博客里的 `/flowtide`（或 `/projects/flowtide`）详情页**绝对不要把版本号、APK 文件名写死**。
+Flowtide 会持续发版（0.9.3 → 0.9.4 → …），写死的话每次发版这个页面都会过期、
+下载链接还会指向已被替换掉的旧文件名（404）。
+
+**唯一可信的版本源**是 `https://merrain.cn/download/flowtide/latest.json`，结构：
+```json
+{ "versionCode": 6, "versionName": "0.9.4",
+  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.4.apk", "notes": "..." }
+```
+
+**推荐做法（三选一，按省心程度排序）：**
+
+1. **最省心：详情页只放一个「下载 / 了解更多」按钮，直接跳** `https://merrain.cn/download/flowtide/`。
+   那个介绍页由发布脚本自动更新，永远是最新版，博客侧零维护。
+2. **要在博客内显示版本号**：客户端 `fetch('https://merrain.cn/download/flowtide/latest.json')`
+   动态渲染版本号和下载链接（用 `versionName` 和 `url` 字段），不要写常量。
+3. **服务端渲染**：Next.js 里用 `fetch(latest.json, { cache: 'no-store' })` 或短 `revalidate`
+   在 SSR/ISR 阶段取版本号，别 build 时写死。
+
+**下载按钮的 href 永远用 `latest.json` 里的 `url` 字段**，不要自己拼 `flowtide-0.9.3.apk`——
+旧版本 APK 发新版时会被同名替换策略清掉，写死的链接会 404。
+
+配图同理：截图会随版本更新，建议热链 `https://merrain.cn/download/flowtide/assets/shot-*.png`
+而不是复制到博客 `/images/` 下（复制的副本不会随发版更新）。
