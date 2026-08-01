@@ -2,16 +2,25 @@
 
 > 让专注与休息像潮汐一样自然涨落。
 
-Flowtide 是一个以**自适应音频环境**为核心的 AI 专注管家，面向深度工作者与注意力管理需求人群。当前为 **v0.7**：在自适应番茄钟 + 声景 + 音乐的基础上，新增 **AI 目标计划引擎**——从「记录工具」进化为「计划管家」：说出目标，Flowtide 负责把它变成每天该干什么。
+Flowtide 是一个以**自适应音频环境**为核心的 AI 专注管家，面向深度工作者与注意力管理需求人群。当前为 **v0.9.5**：在自适应番茄钟 + 声景 + 音乐 + AI 目标计划的基础上，已覆盖 **Android APK、在线尝鲜版（PWA）、Windows / Mac 桌面、鸿蒙**多端体验，并持续打磨桌面与在线端的细节。数据 local-first，只存本机。
+
+## 平台与获取
+
+- 📱 **Android APK**：[下载页](https://merrain.cn/download/flowtide/)（内置应用内自动更新）
+- 🖥 **在线尝鲜版 / 桌面**：[浏览器直接体验](https://merrain.cn/download/flowtide/app/)，Chrome / Edge 可「安装为应用」获得独立窗口
+- 🌐 **鸿蒙 HarmonyOS**：4.x 及更早直接装 APK；纯血鸿蒙 NEXT 用在线尝鲜版
+
+> 在线版为尝鲜体验：锁屏后台提醒、震动、手环协同等需系统能力的功能请用 Android 版。
 
 ## 功能
 
-### 🎯 AI 目标计划引擎（v0.7 核心）
+### 🎯 AI 目标计划引擎
 
 只需说出目标（如“考四级”）、截止日期、每日可投入时间与自评水平：
 
 - **AI 生成分阶段计划**：LLM 按周期划分 2-4 个阶段（如“词汇打底 → 强化训练 → 冲刺模拟”），本地展开成逐日任务，100+ 天的备考计划也不超 token；
 - **每日自动派发**：每天打开应用，当天任务自动注入番茄钟任务队列（幂等不重复），不用再手动搬运学习计划；
+- **跨天承接**（v0.9.5）：新的一天到来、但昨天的阶段还没做完时，不再默默跳到下一阶段，而是先询问——「顺延一天先补昨天」或「照常推进今天」，节奏由你掌控；
 - **自适应重排**：错过的任务自动顺延；积压过多或进度落后时，AI 重排剩余计划（预览确认后生效）；
 - **Mock 降级**：离线也能用模板计划，不依赖网络。
 
@@ -20,14 +29,21 @@ Flowtide 是一个以**自适应音频环境**为核心的 AI 专注管家，面
 - **会话恢复**：专注中刷新/关页/杀后台，重新打开无缝续跑；离开超过到点时刻则按“到点时刻”自动结算入库，不丢一轮数据；
 - **AI 每周复盘**：复盘面板一键生成周报——聚合专注时长、心流占比、精力时段与计划完成率，LLM 写成 150 字叙事（同一周命中缓存）。
 
-### 📱 Android APK（v0.7，Capacitor）
+### 📱 Android APK（Capacitor）
 
 已集成 Capacitor + LocalNotifications：原生环境下专注开始时**预约到点通知**，锁屏/杀后台也准点提醒（手环通知镜像白名单加 Flowtide 即可震动）；Web 端继续走浏览器通知路径。构建 APK 需本机 JDK 17+ 与 Android SDK：
 
 ```bash
 npm run build && npx cap sync android
-cd android && .\gradlew assembleDebug   # 产物：android/app/build/outputs/apk/debug/
+cd android && .\gradlew assembleRelease   # 产物：android/app/build/outputs/apk/release/
 ```
+
+### 🖥 多端体验（在线尝鲜版 / 桌面 / 鸿蒙）
+
+- **在线尝鲜版**：`npm run build:web` 以子路径 base 构建到独立 `dist-web`，部署至 `/download/flowtide/app/`，与 APK 的 `dist` 完全隔离；Service Worker / manifest 均用相对路径 + 动态 scope，同一套代码兼容根路径与子路径；
+- **Windows / Mac 桌面**：浏览器打开在线版，地址栏「安装为应用」即得独立窗口（PWA，不打包 exe）；
+- **桌面细节**（v0.9.4）：PWA 图标（含 maskable）、键盘快捷键（空格暂停/继续、数字键 1-5 切预设）、标签页标题实时倒计时、桌面通知；
+- **鸿蒙**：HarmonyOS 4.x 及更早直接装 APK；纯血鸿蒙 NEXT 用在线尝鲜版。
 
 ### 🍅 自适应番茄钟（专注引擎）
 
@@ -69,13 +85,20 @@ cd android && .\gradlew assembleDebug   # 产物：android/app/build/outputs/apk
 
 ```bash
 npm install
-npm run dev
+npm run dev          # 本地开发
+npm run build        # 构建 APK 用产物（dist，根路径）
+npm run build:web    # 构建在线尝鲜版（dist-web，子路径 base）
 ```
+
+发版用 `npm run bump <version>` 一键同步 6 处版本号，再走一键发布脚本上传 APK 与介绍页。
 
 ## 技术栈
 
 - Vite + React 19 + TypeScript
 - Web Audio API（程序化声景合成）
+- Capacitor（Android 原生壳 + 本地通知 / 震动 / 文件系统等插件）
+- PWA（Service Worker + manifest，支持子路径部署与桌面安装）
+- IndexedDB（local-first 持久化）+ DeepSeek（计划生成 / 周报 / 日程提取，可 Mock 降级）
 - 核心引擎（`src/core/`）为纯 TS、零框架依赖，可直接迁入 Tauri / Worker
 
 ## 项目结构
@@ -87,13 +110,18 @@ src/
     audio/    # 分层声景混音器 + 程序化音源
     music/    # 本地音乐播放器(专注联动压音) + 网易云外链解析
     task/     # 任务队列（认知负荷标注 + 番茄数）
-    plan/     # 🎯 目标计划引擎（AI 生成/每日派发/自适应重排，v0.7）
-    report/   # AI 每周复盘（v0.7）
-    agent/    # 规则引擎 + LLM 适配 + 精力画像
-    device/   # 震动 / 屏幕常亮 / 原生通知桥（Capacitor）
+    plan/     # 🎯 目标计划引擎（AI 生成/每日派发/跨天承接/自适应重排）
+    report/   # AI 每周复盘
+    agent/    # 规则引擎 + LLM 适配 + 精力画像 + 通知
+    device/   # 震动 / 屏幕常亮 / 原生通知桥 / 应用内更新 / 标签页标题（Capacitor）
+    storage/  # IndexedDB 存取
+    backup/   # 数据备份与恢复
+    dev/      # 开发者模式
   hooks/      # React 桥接层（单例引擎 + useSyncExternalStore）
   components/ # 番茄钟 / 声景 / 音乐 / 任务 / 复盘 / 计划向导等面板
-android/      # Capacitor Android 工程（v0.7）
+scripts/      # bump-version.mjs（版本链同步）/ gen-icons.mjs（PWA 图标）
+landing/      # 下载介绍页 + latest.json（应用内更新源）
+android/      # Capacitor Android 工程
 ```
 
 ## 路线图
@@ -104,6 +132,11 @@ android/      # Capacitor Android 工程（v0.7）
 - **v0.5** ✅ 专注复盘看板 + 专注报告卡 + 功能引导
 - **v0.6** ✅ 开发者模式 + AI 日程提取 + 设备震动/屏幕常亮 + 声景音质重写 + 移动端适配
 - **v0.7** ✅ 🎯 AI 目标计划引擎（生成/每日派发/自适应重排）+ 会话恢复 + AI 周报 + Capacitor APK
+- **v0.9.1** ✅ 隐私合规（首次同意）+ 底部导航改版 + 启动屏
+- **v0.9.2** ✅ 全平台响应式 UI 修复
+- **v0.9.3** ✅ 浮动 AI 窗口 + 栏目排序 + 介绍页改版 + 在线尝鲜版（PWA 子路径）+ 鸿蒙/Windows 桌面试用
+- **v0.9.4** ✅ PWA 图标 + 键盘快捷键 + 标签页倒计时 + 桌面通知 + APK 引导 + 版本链同步脚本
+- **v0.9.5** ✅ 计划跨天承接（昨天未完成时询问顺延或推进）
 - **v1.0+** 可穿戴数据接入、企业版、AI 生成音频
 
 ## 设计原则
@@ -111,3 +144,9 @@ android/      # Capacitor Android 工程（v0.7）
 1. **心流优先**：工具服务于状态，而不是状态服从计时器；
 2. **Local-first**：专注记录默认只存本地，隐私是"权限信任"的基石；
 3. **Agent 只做可逆、低风险决策**：最终决定权永远在用户手里。
+
+## 部署架构
+
+- 下载服务器（Nginx 静态直出 `/download/flowtide/`）：APK、`latest.json`（应用内更新源）、介绍页、在线尝鲜版 `app/`
+- 主站 `merrain.cn`：Cloudflare CDN → Nginx → Next.js 博客
+- 发版：`npm run bump <version>` 同步版本链 → 构建 APK → 一键发布脚本上传并线上校验
