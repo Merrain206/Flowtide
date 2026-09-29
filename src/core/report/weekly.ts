@@ -13,7 +13,6 @@ import { energyCache } from '../agent/RulesEngine'
 import { getAPIKey, getProvider } from '../agent/LLMAdapter'
 import { planEngine, taskEngine } from '../../hooks/useEngines'
 
-const DEFAULT_API_KEY = 'sk-1c8f9ece34324e75a4ce9d8d4124d896'
 const DEEPSEEK_API = 'https://api.deepseek.com/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 const CACHE_KEY = 'flowtide.weekly.report'
@@ -122,7 +121,7 @@ export async function generateWeeklyReport(): Promise<WeeklyReport> {
   const stats = await aggregateWeek()
 
   let narrative: string
-  if (getProvider() === 'mock') {
+  if (getProvider() === 'mock' || !getAPIKey()) {
     narrative = mockNarrative(stats)
   } else {
     narrative = await llmNarrative(stats)
@@ -158,7 +157,7 @@ async function llmNarrative(stats: WeeklyStats): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAPIKey() || DEFAULT_API_KEY}`,
+      'Authorization': `Bearer ${getAPIKey()}`,
     },
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,

@@ -34,3 +34,9 @@ nginx-*.conf
 
 # 发布 skill（含服务器地址，仅本地使用，不入公开仓库）
 .qoder/
+
+# 本地打包快照（内含 android 签名密钥，严禁入库）
+*.zip
+
+# 本地工具产物（RuVector 知识图谱数据库，非项目源码）
+ruvector.db

@@ -8,7 +8,7 @@
  * - 路径基于注册 scope 动态计算，支持根路径与子路径（/download/flowtide/app/）部署
  */
 
-const CACHE_NAME = 'flowtide-v0.9.5'
+const CACHE_NAME = 'flowtide-v1.0.0'
 // 部署基路径：根部署为 '/'，子路径部署为 '/download/flowtide/app/'
 const BASE = new URL(self.registration.scope).pathname
 

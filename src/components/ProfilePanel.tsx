@@ -380,7 +380,7 @@ export function ProfilePanel({ onOpenGuide, onOpenDev, onGoMusic }: Props) {
                   className="text-input"
                   type="password"
                   value={llmKey}
-                  placeholder="留空则使用内置默认 Key"
+                  placeholder="粘贴你的 DeepSeek API Key"
                   onChange={(e) => setLLMKey(e.target.value)}
                   onBlur={() => setAPIKey(llmKey)}
                 />
@@ -392,7 +392,7 @@ export function ProfilePanel({ onOpenGuide, onOpenDev, onGoMusic }: Props) {
                   style={{ fontSize: 11, marginTop: 4, padding: '2px 8px' }}
                   onClick={() => { setLLMKey(''); setAPIKey('') }}
                 >
-                  重置为默认 Key
+                  清除 Key
                 </button>
               )}
             </>
@@ -400,7 +400,9 @@ export function ProfilePanel({ onOpenGuide, onOpenDev, onGoMusic }: Props) {
           <p className="profile-row-sub">
             {llmEnabled
               ? (llmProvider === 'deepseek'
-                  ? `✅ DeepSeek v4 Flash · ${llmKey ? '自定义 Key' : '内置默认 Key'}`
+                  ? (llmKey
+                      ? '✅ DeepSeek v4 Flash · 已配置 Key'
+                      : '⚠️ 未配置 Key，暂时降级为规则引擎（Key 仅存本机浏览器）')
                   : 'ℹ️ Mock 规则引擎（无网络请求）')
               : '已关闭 LLM 建议，仅使用规则引擎'}
           </p>

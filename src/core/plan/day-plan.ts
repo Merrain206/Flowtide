@@ -13,7 +13,6 @@ import { getAPIKey, getProvider } from '../agent/LLMAdapter'
 import { focusEngine, taskEngine } from '../../hooks/useEngines'
 import { todayKey } from './plan-llm'
 
-const DEFAULT_API_KEY = 'sk-1c8f9ece34324e75a4ce9d8d4124d896'
 const DEEPSEEK_API = 'https://api.deepseek.com/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 const CACHE_KEY = 'flowtide.dayplan'
@@ -79,7 +78,7 @@ export async function generateDayPlan(): Promise<DayPlan> {
   const pending = taskEngine.snapshot().tasks.filter((t) => !t.done)
 
   let plan: DayPlan
-  if (getProvider() === 'mock' || !profile.sufficient) {
+  if (getProvider() === 'mock' || !profile.sufficient || !getAPIKey()) {
     plan = mockDayPlan(profile, pending)
   } else {
     plan = await llmDayPlan(profile, pending)
@@ -140,7 +139,7 @@ async function llmDayPlan(profile: EnergyProfile, pending: TaskLike[]): Promise<
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAPIKey() || DEFAULT_API_KEY}`,
+      'Authorization': `Bearer ${getAPIKey()}`,
     },
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,

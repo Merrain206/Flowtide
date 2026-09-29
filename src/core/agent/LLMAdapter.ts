@@ -56,9 +56,6 @@ const DEEPSEEK_BASE = 'https://api.deepseek.com'
 const DEEPSEEK_API = `${DEEPSEEK_BASE}/chat/completions`
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 
-/** 用户未配置时的内置默认 Key */
-const DEFAULT_API_KEY = 'sk-1c8f9ece34324e75a4ce9d8d4124d896'
-
 const SYSTEM_PROMPT = `你是 Flowtide 心流潮汐的 AI 专注助手。
 用户正在使用番茄钟进行专注工作。你会收到用户的当前状态（专注阶段、精力画像、最近记录、任务列表）。
 请根据上下文给出 1-2 句简短、温暖、实用的建议。语气像一位了解你的搭档，不是机器人。
@@ -66,7 +63,9 @@ const SYSTEM_PROMPT = `你是 Flowtide 心流潮汐的 AI 专注助手。
 
 export class DeepSeekAdapter implements LLMAdapter {
   async suggest(prompt: AgentPrompt): Promise<string> {
-    const apiKey = getAPIKey() || DEFAULT_API_KEY
+    const apiKey = getAPIKey()
+    // 未配置 Key 时降级到规则引擎，而不是静默用别人的额度
+    if (!apiKey) return new MockLLMAdapter().suggest(prompt)
 
     const userMsg = buildUserMessage(prompt)
     try {
@@ -152,14 +151,9 @@ const API_KEY_STORAGE = 'flowtide:deepseek:apiKey'
 const PROVIDER_STORAGE = 'flowtide:llm:provider'
 const ENABLED_STORAGE = 'flowtide:llm:enabled'
 
-/** 获取 API Key，优先使用用户自定义，回退到内置默认值 */
+/** 获取用户自填的 API Key（无内置默认值，未配置时返回空串） */
 export function getAPIKey(): string {
   try { return localStorage.getItem(API_KEY_STORAGE) ?? '' } catch { return '' }
-}
-
-/** 获取实际生效的 Key（用户自定义 > 内置默认） */
-export function getEffectiveAPIKey(): string {
-  return getAPIKey() || DEFAULT_API_KEY
 }
 
 export function setAPIKey(key: string): void {

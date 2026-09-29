@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "0.9.5",
-  "url": "https://merrain.cn/download/flowtide/flowtide-0.9.5.apk",
-  "notes": "计划跨天承接：昨天阶段没做完时不再默默跳到下一阶段，改为询问顺延一天或照常推进"
+  "versionCode": 8,
+  "versionName": "1.0.0",
+  "url": "https://merrain.cn/download/flowtide/flowtide-1.0.0.apk",
+  "notes": "1.0 正式版：AI 助手改为使用你自己的 DeepSeek API Key（我的 → AI 助手），未配置时自动降级为本地规则引擎，数据更可控"
 }

@@ -9,7 +9,6 @@
 import { getAPIKey, getProvider } from '../agent/LLMAdapter'
 import type { GeneratePlanInput, PlanPhase, PlanDay } from './types'
 
-const DEFAULT_API_KEY = 'sk-1c8f9ece34324e75a4ce9d8d4124d896'
 const DEEPSEEK_API = 'https://api.deepseek.com/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 
@@ -36,7 +35,7 @@ export async function generatePlanPhases(input: GeneratePlanInput): Promise<Plan
   const remainingDays = daysUntil(input.deadline)
   if (remainingDays < 1) throw new Error('截止日期需要晚于今天')
 
-  if (getProvider() === 'mock') {
+  if (getProvider() === 'mock' || !getAPIKey()) {
     return mockPhases(input, remainingDays)
   }
 
@@ -51,7 +50,7 @@ export async function generatePlanPhases(input: GeneratePlanInput): Promise<Plan
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAPIKey() || DEFAULT_API_KEY}`,
+      'Authorization': `Bearer ${getAPIKey()}`,
     },
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,
@@ -104,7 +103,7 @@ export async function rebalancePlanPhases(ctx: {
 }): Promise<PlanPhase[]> {
   if (ctx.remainingDays < 1) throw new Error('计划已接近尾声，不需要重排了')
 
-  if (getProvider() === 'mock') {
+  if (getProvider() === 'mock' || !getAPIKey()) {
     return mockRebalancePhases(ctx)
   }
 
@@ -121,7 +120,7 @@ export async function rebalancePlanPhases(ctx: {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getAPIKey() || DEFAULT_API_KEY}`,
+      'Authorization': `Bearer ${getAPIKey()}`,
     },
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,

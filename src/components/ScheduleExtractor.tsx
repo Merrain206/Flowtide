@@ -33,16 +33,15 @@ const EXTRACT_SYSTEM = `你是日程智能助手。用户会给你一段文字�
 ]
 只返回 JSON，不要任何解释文字。如果提取不到有效任务，返回空数组 []。`
 
-const DEFAULT_API_KEY = 'sk-1c8f9ece34324e75a4ce9d8d4124d896'
 const DEEPSEEK_API = 'https://api.deepseek.com/chat/completions'
 const DEEPSEEK_MODEL = 'deepseek-v4-flash'
 
 async function extractTasksFromText(text: string): Promise<ExtractedTask[]> {
-  const apiKey = getAPIKey() || DEFAULT_API_KEY
+  const apiKey = getAPIKey()
   const provider = getProvider()
 
-  // Mock 模式下用简单规则解析（逐行拆分）
-  if (provider === 'mock') {
+  // Mock 模式或用户未配置 Key 时，用简单规则解析（逐行拆分）
+  if (provider === 'mock' || !apiKey) {
     return mockExtract(text)
   }
 
